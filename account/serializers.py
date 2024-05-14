@@ -6,11 +6,7 @@ from .models import User
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = (
-            'username',
-            'email',
-            'password'
-        )
+        fields = ['username', 'email', 'password']
 
     def create(self, validated_data):
         auth_user = User.objects.create_user(**validated_data)
@@ -20,11 +16,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class SuperUserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = (
-            'username',
-            'email',
-            'password',
-        )
+        fields = ['username', 'email', 'password']
 
     def create(self, validated_data):
         auth_user = User.objects.create_superuser(**validated_data)
@@ -74,6 +66,7 @@ class PasswordChangeSerializer(serializers.Serializer):
         user.set_password(new_password)
         user.save()
         return user
+
 
 class UpdateRoleSerializer(serializers.Serializer):
     uid = serializers.UUIDField()
