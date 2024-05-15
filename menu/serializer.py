@@ -5,7 +5,7 @@ from .models import Category, Item
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['name']
+        fields = ['uid', 'name']
 
     def validate(self, data):
         name = data.get('name')
@@ -17,11 +17,14 @@ class CategorySerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
-        fields = ['name', 'category_uid']
+        fields = ['uid', 'name', 'category_uid']
 
     def validate(self, data):
         name = data.get('name')
+        category_uid = data.get('category_uid')
 
-        if Category.objects.filter(name=name).exists():
-            raise serializers.ValidationError("This item already exists.")
+        if Item.objects.filter(name=name).exists():
+            raise serializers.ValidationError("This item already exists!")
+        elif not Category.objects.filter(uid=category_uid).exists():
+            raise serializers.ValidationError("This category does not exist!")
         return data
