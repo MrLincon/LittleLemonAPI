@@ -38,7 +38,7 @@
 }
 ```
 
-> `Change Password (POST /change-password): (Requires Authentication)`
+> `Change Password (POST /change-password):`
 
 ```json
 {
@@ -57,6 +57,52 @@
 }
 ```
 
+# Menu:
+
+
+> `Fetch Categories (GET /menu/categories/all)`
+
+> `Add Category (POST /menu/add-category/)`
+
+```json
+{
+    "name": "Chinese"
+}
+```
+
+> `Update Category (POST /menu/update-category/category_id)`
+
+```json
+{
+    "name": "Chinese"
+}
+```
+
+> `Delete Category (DELETE /menu/delete-category/category_id)`
+#
+> `Fetch Items (GET /menu/items/all)`
+
+> `Add Item (POST /menu/add-item/)`
+
+```json
+{
+    "name": "Fried Rice",
+    "category_uid": "66d8cebcca7c43e6bfe402e3d86913de"
+}
+```
+
+> `Update Item (POST /menu/update-item/item_id)`
+
+```json
+{
+    "name": "Fried Rice",
+    "category_uid": "66d8cebcca7c43e6bfe402e3d86913de"
+}
+```
+
+> `Delete Item (DELETE /menu/delete-item/item_id)`
+#
+#
 ### `Roles:`
 
     Admin

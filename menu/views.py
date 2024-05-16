@@ -46,9 +46,7 @@ class UpdateCategoryView(APIView):
                     'message': 'Category not found!'
                 }, status=status.HTTP_404_NOT_FOUND)
 
-
             serializer = CategorySerializer(data, data=request.data, partial=True)
-
 
             if serializer.is_valid():
                 category = serializer.save()
@@ -66,6 +64,38 @@ class UpdateCategoryView(APIView):
         except Exception as e:
             return Response(e, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class DeleteCategoryView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def delete(self, request, category_uid):
+        try:
+
+            try:
+                data = Category.objects.filter(uid=category_uid)
+            except Exception as e:
+                print(e)
+                return Response({
+                    'data': {},
+                    'message': 'Item not found!'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            items = Item.objects.filter(category_uid=category_uid)
+            if items.exists():
+                return Response({
+                    'message': 'There are items in this category!',
+                    'data': {}
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            data.delete()
+            response = {
+                'message': 'Category deleted successfully!',
+                'data': {}
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(e, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class FetchCategoriesView(APIView):
@@ -126,9 +156,7 @@ class UpdateItemView(APIView):
                     'message': 'Item not found!'
                 }, status=status.HTTP_404_NOT_FOUND)
 
-
             serializer = ItemSerializer(data, data=request.data, partial=True)
-
 
             if serializer.is_valid():
                 item = serializer.save()
@@ -147,6 +175,31 @@ class UpdateItemView(APIView):
         except Exception as e:
             return Response(e, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class DeleteItemView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def delete(self, request, item_uid):
+        try:
+
+            try:
+                data = Item.objects.get(uid=item_uid)
+            except Exception as e:
+                print(e)
+                return Response({
+                    'data': {},
+                    'message': 'Item not found!'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            data.delete()
+            response = {
+                'message': 'Item deleted successfully!',
+                'data': {}
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(e, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class FetchItemsView(APIView):
