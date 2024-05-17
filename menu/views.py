@@ -1,4 +1,6 @@
-from .serializer import CategorySerializer, ItemSerializer
+from django.core.exceptions import ObjectDoesNotExist
+
+from .serializer import CategorySerializer, ItemSerializer, ItemFeaturingSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -131,8 +133,9 @@ class AddItemView(APIView):
             response = {
                 'message': 'Item added successfully',
                 'data': {
-                    'name': item.name,
                     'uid': item.uid,
+                    'name': item.name,
+                    'price': item.price,
                 }
             }
 
@@ -165,6 +168,7 @@ class UpdateItemView(APIView):
                     'data': {
                         'uid': item.uid,
                         'name': item.name,
+                        'price': item.price,
                         'category_uid': item.category_uid,
                     }
                 }
@@ -208,9 +212,9 @@ class FetchItemsView(APIView):
     def get(self, request):
         try:
             items = Item.objects.all()
-            serializer = CategorySerializer(data=items, many=True)
+            serializer = ItemSerializer(data=items, many=True)
 
-            serializer.is_valid()
+            data = serializer.is_valid()
 
             response = {
                 'message': 'Items fetched successfully!',
@@ -227,8 +231,18 @@ class FetchItemsByCategoryView(APIView):
 
     def get(self, request, category_uid):
         try:
+
+            try:
+                data = Category.objects.get(uid=category_uid)
+            except Exception as e:
+                print(e)
+                return Response({
+                    'data': {},
+                    'message': 'Category not found!'
+                }, status=status.HTTP_404_NOT_FOUND)
+
             items = Item.objects.filter(category_uid=category_uid)
-            serializer = CategorySerializer(data=items, many=True)
+            serializer = ItemSerializer(data=items, many=True)
 
             serializer.is_valid()
 
@@ -239,4 +253,49 @@ class FetchItemsByCategoryView(APIView):
             return Response(response, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response(e, status=status.HTTP_400_BAD_REQUEST)
+            response = {
+                'message': 'An error occurred!',
+                'error': str(e)
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FeatureItemView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request, item_uid):
+        try:
+            item = Item.objects.get(uid=item_uid)
+            is_featured = item.is_featured
+
+            data = {'is_featured': not is_featured}
+
+            serializer = ItemFeaturingSerializer(item, data=data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                response = {
+                    'message': 'Item updated successfully!',
+                    'data': serializer.data
+                }
+                return Response(response, status=status.HTTP_200_OK)
+            else:
+                response = {
+                    'message': 'Invalid data!',
+                    'errors': serializer.errors
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        except ObjectDoesNotExist:
+            response = {
+                'message': 'Item not found!',
+                'data': {}
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            response = {
+                'message': 'An error occurred!',
+                'error': str(e)
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
