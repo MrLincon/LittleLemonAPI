@@ -27,7 +27,7 @@ class UserRegistrationView(APIView):
             response = {
                 'message': 'User successfully registered!',
                 'data': {
-                    'uid': user.uid,
+                    '_id': user._id,
                     'username': user.username,
                     'email': user.email,
                     'role': user.role,
@@ -54,7 +54,7 @@ class SuperUserRegistration(APIView):
             response = {
                 'message': 'User successfully registered!',
                 'data': {
-                    'uid': user.uid,
+                    '_id': user._id,
                     'username': user.username,
                     'email': user.email,
                     'role': user.role,
@@ -79,7 +79,7 @@ class UserLoginView(APIView):
             response = {
                 'message': 'Login successful!',
                 'data': {
-                    'uid': user.uid,
+                    '_id': user._id,
                     'username': user.username,
                     'email': user.email,
                     'role': user.role,
@@ -129,7 +129,7 @@ class UpdateRoleView(APIView):
 
         if serializer.is_valid():
 
-            uid = serializer.validated_data['uid']
+            _id = serializer.validated_data['_id']
             role = serializer.validated_data['role']
 
             if role == User.ADMIN:
@@ -137,13 +137,13 @@ class UpdateRoleView(APIView):
 
 
             try:
-                user = User.objects.get(uid=uid)
+                user = User.objects.get(_id=_id)
                 user.role = role
                 user.save()
                 response_data = {
                     'message': 'Role updated successfully',
                     'data': {
-                        'uid': user.uid,
+                        '_id': user._id,
                         'username': user.username,
                         'email': user.email,
                         'role': user.role,

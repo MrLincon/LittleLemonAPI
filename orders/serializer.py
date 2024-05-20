@@ -1,35 +1,31 @@
-from django.db import models
 from rest_framework import serializers
 
-from menu.models import Item, Category
-from .models import Orders
+from menu.models import Category, Item
+from .models import Cart
 
-
-class OrderSerializer(serializers.ModelSerializer):
+class CartCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Orders
-        fields = [
-            'uid',
-            'customer_uid',
-            'item_uid',
-            'price',
-            'category_uid',
-        ]
+        model = Cart
+        fields = ['_id',  'item', 'quantity', 'customer']
 
-    def validate(self, data):
-        item_uid = data.get('item_uid')
-        category_uid = data.get('category_uid')
+class CartItemSerializer(serializers.ModelSerializer):
+    item_id = serializers.UUIDField(source='item._id')
+    item_name = serializers.CharField(source='item.name')
+    category_name = serializers.CharField(source='item.category.name')
+    price = serializers.DecimalField(source='item.price', max_digits=6, decimal_places=2)
 
-        # Debug logs
-        print(f"Validating item_uid: {item_uid}")
-        print(f"Validating category_uid: {category_uid}")
+    class Meta:
+        model = Cart
+        fields = ['item_id', 'item_name', 'category_name', 'price', 'quantity']
 
-        if not Item.objects.filter(uid=item_uid).exists():
-            print(f"Item with uid {item_uid} does not exist")
-            raise serializers.ValidationError({"item_uid": "Item does not exist!"})
+class CartSerializer(serializers.ModelSerializer):
+    items = serializers.SerializerMethodField()
+    user_id = serializers.UUIDField(source='user._id')
 
-        if not Category.objects.filter(uid=category_uid).exists():
-            print(f"Category with uid {category_uid} does not exist")
-            raise serializers.ValidationError({"category_uid": "Category does not exist!"})
+    class Meta:
+        model = Cart
+        fields = ['_id', 'user_id', 'items']
 
-        return data
+    def get_items(self, obj):
+        cart_items = Cart.objects.filter(user=obj.user)
+        return CartItemSerializer(cart_items, many=True).data

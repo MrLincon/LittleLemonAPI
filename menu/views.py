@@ -23,7 +23,7 @@ class AddCategoryView(APIView):
             response = {
                 'message': 'Category added successfully',
                 'data': {
-                    'uid': category.uid,
+                    '_id': category._id,
                     'name': category.name,
                 }
             }
@@ -36,11 +36,11 @@ class AddCategoryView(APIView):
 class UpdateCategoryView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
-    def post(self, request, category_uid):
+    def post(self, request, category_id):
         try:
 
             try:
-                data = Category.objects.get(uid=category_uid)
+                data = Category.objects.get(uid=category_id)
             except Exception as e:
                 print(e)
                 return Response({
@@ -55,7 +55,7 @@ class UpdateCategoryView(APIView):
                 response = {
                     'message': 'Category updated successfully!',
                     'data': {
-                        'uid': category.uid,
+                        '_id': category._id,
                         'name': category.name,
                     }
                 }
@@ -70,11 +70,11 @@ class UpdateCategoryView(APIView):
 class DeleteCategoryView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
-    def delete(self, request, category_uid):
+    def delete(self, request, category_id):
         try:
 
             try:
-                data = Category.objects.filter(uid=category_uid)
+                data = Category.objects.filter(uid=category_id)
             except Exception as e:
                 print(e)
                 return Response({
@@ -82,7 +82,7 @@ class DeleteCategoryView(APIView):
                     'message': 'Item not found!'
                 }, status=status.HTTP_404_NOT_FOUND)
 
-            items = Item.objects.filter(category_uid=category_uid)
+            items = Item.objects.filter(category_uid=category_id)
             if items.exists():
                 return Response({
                     'message': 'There are items in this category!',
@@ -125,6 +125,7 @@ class AddItemView(APIView):
     serializer_class = ItemSerializer
 
     def post(self, request):
+        print(request.data)
         serializer = self.serializer_class(data=request.data)
         valid = serializer.is_valid()
 
@@ -133,7 +134,7 @@ class AddItemView(APIView):
             response = {
                 'message': 'Item added successfully',
                 'data': {
-                    'uid': item.uid,
+                    '_id': item._id,
                     'name': item.name,
                     'price': item.price,
                 }
@@ -147,11 +148,11 @@ class AddItemView(APIView):
 class UpdateItemView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
-    def post(self, request, item_uid):
+    def post(self, request, item_id):
         try:
 
             try:
-                data = Item.objects.get(uid=item_uid)
+                data = Item.objects.get(_id=item_id)
             except Exception as e:
                 print(e)
                 return Response({
@@ -166,7 +167,7 @@ class UpdateItemView(APIView):
                 response = {
                     'message': 'Item updated successfully!',
                     'data': {
-                        'uid': item.uid,
+                        '_id': item._id,
                         'name': item.name,
                         'price': item.price,
                         'category_uid': item.category_uid,
@@ -183,11 +184,11 @@ class UpdateItemView(APIView):
 class DeleteItemView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
-    def delete(self, request, item_uid):
+    def delete(self, request, item_id):
         try:
 
             try:
-                data = Item.objects.get(uid=item_uid)
+                data = Item.objects.get(_id=item_id)
             except Exception as e:
                 print(e)
                 return Response({
@@ -229,11 +230,11 @@ class FetchItemsView(APIView):
 class FetchItemsByCategoryView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, category_uid):
+    def get(self, request, category_id):
         try:
 
             try:
-                data = Category.objects.get(uid=category_uid)
+                data = Category.objects.get(_id=category_id)
             except Exception as e:
                 print(e)
                 return Response({
@@ -241,7 +242,7 @@ class FetchItemsByCategoryView(APIView):
                     'message': 'Category not found!'
                 }, status=status.HTTP_404_NOT_FOUND)
 
-            items = Item.objects.filter(category_uid=category_uid)
+            items = Item.objects.filter(category_id=category_id)
             serializer = ItemSerializer(data=items, many=True)
 
             serializer.is_valid()
@@ -263,9 +264,9 @@ class FetchItemsByCategoryView(APIView):
 class FeatureItemView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
-    def post(self, request, item_uid):
+    def post(self, request, item_id):
         try:
-            item = Item.objects.get(uid=item_uid)
+            item = Item.objects.get(_id=item_id)
             is_featured = item.is_featured
 
             data = {'is_featured': not is_featured}

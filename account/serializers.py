@@ -1,3 +1,5 @@
+from unittest.case import _id
+
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import User
@@ -69,7 +71,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 
 class UpdateRoleSerializer(serializers.Serializer):
-    uid = serializers.UUIDField()
+    _id = serializers.UUIDField()
     role = serializers.ChoiceField(choices=User.ROLE_CHOICES)
 
     def validate_role(self, value):
@@ -78,9 +80,9 @@ class UpdateRoleSerializer(serializers.Serializer):
         return value
 
     def validate(self, data):
-        uid = data.get('uid')
+        _id = data.get('_id')
         try:
-            user = User.objects.get(uid=uid)
+            user = User.objects.get(_id=_id)
         except User.DoesNotExist:
             raise serializers.ValidationError("User with this uid does not exist!")
         self.validate_permissions(user, self.context.get('request'))

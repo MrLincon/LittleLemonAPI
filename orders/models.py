@@ -1,17 +1,16 @@
+from django.conf import settings
+from django.db import models
 import uuid
 from django.utils import timezone
-from django.db import models
 
-class Orders(models.Model):
-    uid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
-    customer_uid = models.UUIDField(editable=False, default=uuid.uuid4)
-    item_uid = models.UUIDField(blank=False)
-    name = models.CharField(max_length=256)
-    price = models.DecimalField(max_digits=6, decimal_places=2, blank=False)
-    category_name = models.CharField(max_length=256)
-    category_uid = models.UUIDField()
-    assigned_crew_id = models.UUIDField(blank=True, null=True)
-    created_date = models.DateTimeField(default=timezone.now)
+from account.models import User
+from menu.models import Item
+
+class Cart(models.Model):
+    _id = models.UUIDField(primary_key=True, unique=True, editable=False, default=uuid.uuid4)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
 
     def __str__(self):
-        return self.name
+        return f"Cart of {self.customer.email}"

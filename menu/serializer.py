@@ -6,7 +6,7 @@ from .models import Category, Item
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['uid', 'name']
+        fields = ['_id', 'name']
 
     def validate(self, data):
         name = data.get('name')
@@ -19,18 +19,22 @@ class CategorySerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
-        fields = ['uid', 'name', 'price', 'category_uid', 'is_featured']
+        fields = ['_id', 'name', 'price', 'category_id', 'is_featured']
 
     def validate(self, data):
         name = data.get('name')
         price = data.get('price')
-        category_uid = data.get('category_uid')
+        category_id = data.get('category_id')
+
+        print(name)
+        print(price)
+        print(category_id._id)
 
         if Item.objects.filter(name=name).exists():
             raise serializers.ValidationError("This item already exists!")
         elif price <= 0.00:
             raise serializers.ValidationError("Invalid price!")
-        elif not Category.objects.filter(uid=category_uid).exists():
+        elif not Category.objects.filter(_id=category_id._id).exists():
             raise serializers.ValidationError("This category does not exist!")
         return data
 

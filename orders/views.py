@@ -1,39 +1,55 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from .models import User, Item, Cart
+from .serializer import CartItemSerializer, CartSerializer, CartCreateSerializer
 
-from account.models import User
-from menu.models import Category
-from .models import Orders
-from .serializer import OrderSerializer
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from account.permissions import IsCustomer
 
-class AddOrderView(APIView):
-    # permission_classes = [IsAuthenticated, IsCustomer]
-    permission_classes = [AllowAny]
-    serializer_class = OrderSerializer
-
+class AddCartView(APIView):
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        print("Incoming request data:", request.data)
-        valid = serializer.is_valid(raise_exception=True)
+        item = request.data.get('item_id')
+        quantity = request.data.get('quantity')
+        customer = request.data.get('customer_id')
 
-        if valid:
-            orders = serializer.save()
+        print(item)
+        # Make sure the item and customer exist
+        try:
+            item = Item.objects.get(_id=item)
+            customer = User.objects.get(_id=customer)
+        except Item.DoesNotExist:
+            return Response({"error": "Item not found."}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            response = {
-                'message': 'Category added successfully',
-                'data': {
-                    'uid': orders.uid,
-                    'customer_id': orders.customer_uid,
-                    'item_id': orders.item_uid,
-                    'name': orders.name,
-                    'price': orders.price,
-                    'category_name': orders.category_name,
-                }
-            }
+        print(item.name)
 
-            return Response(response, status=status.HTTP_201_CREATED)
+        cart_item_data = {
+            'item': item._id,
+            'quantity': quantity,
+            'customer': customer._id
+        }
 
+        print(cart_item_data)
+
+        serializer = CartCreateSerializer(data=cart_item_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FetchCartItemView(APIView):
+    def get(self, request):
+        user_id = request.query_params.get('user_id')
+        if user_id:
+            try:
+                user = User.objects.get(_id=user_id)
+            except User.DoesNotExist:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            carts = Cart.objects.filter(user=user)
+            serializer = CartSerializer(carts, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)

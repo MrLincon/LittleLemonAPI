@@ -10,14 +10,12 @@ from .managers import CustomUserManager
 class User(AbstractBaseUser, PermissionsMixin):
     ADMIN = 1
     MANAGER = 2
-    EMPLOYEE = 3
-    DELIVERY_CREW = 4
-    CUSTOMER = 5
+    DELIVERY_CREW = 3
+    CUSTOMER = 4
 
     ROLE_CHOICES = (
         (ADMIN, 'Admin'),
         (MANAGER, 'Manager'),
-        (EMPLOYEE, 'Employee'),
         (DELIVERY_CREW, 'DeliveryCrew'),
         (CUSTOMER, 'Customer'),
     )
@@ -26,7 +24,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name = 'user'
         verbose_name_plural = 'users'
 
-    uid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+    _id = models.UUIDField(primary_key=True, unique=True, editable=False, default=uuid.uuid4)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=50, blank=True)
