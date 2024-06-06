@@ -17,9 +17,10 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ItemSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category_id.name', read_only=True)
     class Meta:
         model = Item
-        fields = ['_id', 'name', 'price', 'category_id', 'is_featured']
+        fields = ['_id', 'name', 'price', 'category_name', 'category_id', 'is_featured']
 
     def validate(self, data):
         name = data.get('name')

@@ -8,9 +8,9 @@ from menu.models import Item
 
 class Cart(models.Model):
     _id = models.UUIDField(primary_key=True, unique=True, editable=False, default=uuid.uuid4)
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    customer_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column='customer_id')
+    item_id = models.ForeignKey(Item, on_delete=models.CASCADE, db_column='item_id')
     quantity = models.IntegerField()
 
     def __str__(self):
-        return f"Cart of {self.customer.email}"
+        return f"Cart of {self.customer_id}"

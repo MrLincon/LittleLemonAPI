@@ -3,40 +3,49 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import User, Item, Cart
-from .serializer import CartItemSerializer, CartSerializer, CartCreateSerializer
+from .serializer import CartItemSerializer, CartSerializer, CartCreateSerializer, CartCreateOutputSerializer
 
 
 class AddCartView(APIView):
     def post(self, request):
-        item = request.data.get('item_id')
+        item_id = request.data.get('item_id')
         quantity = request.data.get('quantity')
-        customer = request.data.get('customer_id')
+        customer_id = request.data.get('customer_id')
 
-        print(item)
-        # Make sure the item and customer exist
+        # # Debugging prints to ensure data is being received
+        # print(f"item_id: {item_id}, quantity: {quantity}, customer_id: {customer_id}")
+        #
+        # if not item_id or not quantity or not customer_id:
+        #     return Response({"error": "Item ID, quantity, and customer ID are required."}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # # Make sure the item and customer exist
         try:
-            item = Item.objects.get(_id=item)
-            customer = User.objects.get(_id=customer)
+            item = Item.objects.get(_id=item_id)
+            customer = User.objects.get(_id=customer_id)  # Ensure correct ID field
         except Item.DoesNotExist:
             return Response({"error": "Item not found."}, status=status.HTTP_404_NOT_FOUND)
         except User.DoesNotExist:
             return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        print(item.name)
-
+        # Prepare the data for the serializer
         cart_item_data = {
-            'item': item._id,
+            'item_id': item._id,   # ensure field name matches serializer field
             'quantity': quantity,
-            'customer': customer._id
+            'customer_id': customer._id  # ensure field name matches serializer field and correct ID field
         }
 
-        print(cart_item_data)
+        # Debugging print to check data before passing to serializer
+        print(f"cart_item_data: {cart_item_data}")
 
         serializer = CartCreateSerializer(data=cart_item_data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            cart_item = serializer.save()
+            output_serializer = CartCreateOutputSerializer(cart_item)
+            return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            # Debugging print to check validation errors
+            print(f"serializer.errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FetchCartItemView(APIView):

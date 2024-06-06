@@ -6,13 +6,27 @@ from .models import Cart
 class CartCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
-        fields = ['_id',  'item', 'quantity', 'customer']
+        fields = ['_id', 'item_id', 'quantity', 'customer_id']
+
+
+class CartCreateOutputSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source='item_id.name', read_only=True)
+    customer_email = serializers.EmailField(source='customer_id.email', read_only=True)
+    category_name = serializers.CharField(source='item_id.category_id.name', read_only=True)
+    price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cart
+        fields = ['_id', 'category_name', 'item_name', 'quantity', 'price', 'customer_email']
+
+    def get_price(self, obj):
+        return obj.quantity * obj.item_id.price
 
 class CartItemSerializer(serializers.ModelSerializer):
-    item_id = serializers.UUIDField(source='item._id')
-    item_name = serializers.CharField(source='item.name')
-    category_name = serializers.CharField(source='item.category.name')
-    price = serializers.DecimalField(source='item.price', max_digits=6, decimal_places=2)
+    item_id = serializers.UUIDField(source='item_id._id')
+    item_name = serializers.CharField(source='item_id.name')
+    category_name = serializers.CharField(source='item_id.category_id.name')
+    price = serializers.DecimalField(source='item_id.price', max_digits=6, decimal_places=2)
 
     class Meta:
         model = Cart
