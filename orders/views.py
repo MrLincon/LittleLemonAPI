@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import User, Item, Cart
-from .serializer import CartItemSerializer, CartSerializer, CartCreateSerializer, CartCreateOutputSerializer
+from .serializer import CartItemSerializer, CartSerializer, CartCreateSerializer
 
 
 class AddCartView(APIView):
@@ -40,8 +40,14 @@ class AddCartView(APIView):
         serializer = CartCreateSerializer(data=cart_item_data)
         if serializer.is_valid():
             cart_item = serializer.save()
-            output_serializer = CartCreateOutputSerializer(cart_item)
-            return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+            output_serializer = CartItemSerializer(cart_item)
+
+            response = {
+                'message': 'Items added to cart successfully!',
+                'data': output_serializer.data,
+            }
+
+            return Response(response, status=status.HTTP_201_CREATED)
         else:
             # Debugging print to check validation errors
             print(f"serializer.errors: {serializer.errors}")
@@ -50,15 +56,23 @@ class AddCartView(APIView):
 
 class FetchCartItemView(APIView):
     def get(self, request):
-        user_id = request.query_params.get('user_id')
+        user_id = request.data.get('user_id')
         if user_id:
             try:
                 user = User.objects.get(_id=user_id)
             except User.DoesNotExist:
-                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+                response = {
+                    'message': 'Items added to cart successfully!',
+                    'error': 'User not found!',
+                }
+                return Response(response, status=status.HTTP_404_NOT_FOUND)
 
-            carts = Cart.objects.filter(user=user)
-            serializer = CartSerializer(carts, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+            carts = Cart.objects.filter(customer_id=user_id)
+            serializer = CartItemSerializer(carts, many=True)
+            response = {
+                'message': 'Cart items fetched successfully!',
+                'data': serializer.data,
+            }
+            return Response(response, status=status.HTTP_200_OK)
+
+        return Response({"error": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
