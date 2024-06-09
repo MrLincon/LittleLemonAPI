@@ -1,5 +1,3 @@
-from unittest.case import _id
-
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import User
